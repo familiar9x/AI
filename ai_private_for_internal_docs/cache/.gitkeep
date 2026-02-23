@@ -1,0 +1,48 @@
+# OCR Cache Directory
+
+This directory stores OCR results to speed up re-ingestion.
+
+## Structure
+
+```
+cache/
+  ocr/
+    {pdf_hash}_p{page}_dpi{dpi}_{lang}.txt
+```
+
+## How it works
+
+1. First time OCR a PDF page → generates cache file
+2. Next time same PDF → reads from cache (instant)
+3. Cache key includes:
+   - PDF content hash (SHA1)
+   - Page number
+   - DPI setting
+   - OCR language
+
+## Benefits
+
+- 30-50x faster re-ingest for scanned PDFs
+- No need to OCR again if file unchanged
+- Survives container restart (volume mounted)
+
+## Management
+
+```bash
+# View cache size
+du -sh cache/
+
+# Clear cache
+rm -rf cache/ocr/*
+
+# Cache is regenerated automatically on next ingest
+```
+
+## When cache is invalidated
+
+- PDF file content changes (different hash)
+- DPI setting changes in .env
+- OCR language changes in .env
+- Manual deletion
+
+File renames don't invalidate cache (uses content hash, not filename).

@@ -1,0 +1,64 @@
+# Gitignore for Private RAG System
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Docker
+.dockerignore
+
+# Environment
+.env.local
+.env.*.local
+
+# Models (large files)
+models/*
+!models/.gitkeep
+
+# Documents (sensitive data)
+docs/*
+!docs/README.md
+!docs/OCR_GUIDE.md
+!docs/V2_UPGRADE_GUIDE.md
+!docs/V3_SSO_GUIDE.md
+
+# Cache
+cache/ocr/*
+!cache/.gitkeep
+
+# SSL Certs (sensitive)
+nginx/certs/*.pem
+nginx/certs/*.key
+nginx/certs/*.crt
+!nginx/certs/README.md
+
+# Qdrant data
+qdrant_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+*.cache

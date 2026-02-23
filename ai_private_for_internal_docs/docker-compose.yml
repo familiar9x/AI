@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: vllm
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models
+    command: >
+      --model /models/Qwen2.5-7B-Instruct
+      --host 0.0.0.0
+      --port 8000
+      --dtype auto
+      --max-model-len 8192
+
+  backend:
+    build: ./backend
+    container_name: rag-backend
+    env_file: .env
+    depends_on:
+      - qdrant
+      - vllm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docs:/app/docs
+      - ./backend:/app
+      - ./cache:/app/.cache
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    environment:
+      # Gọi backend qua Nginx /api để SSO thống nhất
+      - OPENAI_API_BASE_URL=https://rag.company.local/api/v1
+      - OPENAI_API_KEY=dummy
+    depends_on:
+      - backend
+    ports:
+      - "3000:8080"   # chỉ để debug nội bộ; production nên chỉ expose qua nginx
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: oauth2-proxy
+    env_file: .env
+    ports:
+      - "4180:4180"
+
+  nginx:
+    image: nginx:alpine
+    container_name: rag-nginx
+    depends_on:
+      - oauth2-proxy
+      - openwebui
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+
+volumes:
+  qdrant_data:
