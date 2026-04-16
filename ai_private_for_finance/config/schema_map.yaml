@@ -1,0 +1,22 @@
+financial_table:
+  name: financial_statements
+  ticker_col: ticker
+  period_end_col: period_end
+  period_type_col: period_type   # 'Q' or 'Y' (optional)
+  currency_unit_col: currency_unit  # optional
+
+columns:
+  revenue: revenue
+  net_income: net_income
+  gross_profit: gross_profit
+  operating_cash_flow: operating_cash_flow
+  total_debt: total_debt
+  cash_and_equiv: cash_and_equiv
+  equity: equity
+  total_assets: total_assets
+  total_liabilities: total_liabilities
+
+# Optional: add more columns if you have them
+# columns:
+#   ebitda: ebitda
+#   interest_expense: interest_expense

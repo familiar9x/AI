@@ -1,0 +1,5 @@
+# RSS News Sources (one per line)
+# Example:
+# https://vnexpress.net/rss/kinh-doanh.rss
+# https://cafef.vn/trang-chu.rss
+# https://vneconomy.vn/rss/home.rss

@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - dashboard
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    env_file:
+      - ./.env
+    expose:
+      - "8000"
+    depends_on:
+      - redis
+      - qdrant
+    restart: unless-stopped
+
+  dashboard:
+    build: ./dashboard
+    env_file:
+      - ./.env
+    expose:
+      - "8501"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.9.5
+    expose:
+      - "6333"
+    restart: unless-stopped
+
+  # OPTIONAL: Local LLM via Ollama (internal AI)
+  ollama:
+    image: ollama/ollama:latest
+    expose:
+      - "11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: unless-stopped
+    # Nếu có GPU NVIDIA:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  ollama:

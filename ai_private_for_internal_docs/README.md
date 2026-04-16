@@ -9,6 +9,8 @@ Hệ thống RAG (Retrieval-Augmented Generation) hoàn toàn private, chạy 10
 - **🔒 JWT Verification**: Backend verify JWT tokens thật
 - **🌐 Nginx Reverse Proxy**: Unified HTTPS entry point
 - **🎫 oauth2-proxy**: Transparent SSO cho UI và API
+- **🔐 HTTPS Production Ready**: TLS 1.2/1.3, security headers, rate limiting
+- **⚡ HTTP/2 Support**: Faster performance với multiplexing
 
 ## ✨ Tính năng v2
 
@@ -123,16 +125,25 @@ OCR_LANG=eng+vie
 python -c "import os,base64; print(base64.b64encode(os.urandom(32)).decode())"
 ```
 
-3. Update `.env` với OIDC config (xem `.env` file)
-
-4. Setup SSL certificates:
+3. Setup SSL certificates (xem [HTTPS_SETUP.md](HTTPS_SETUP.md)):
 ```bash
-cd nginx/certs
-# Copy hoặc generate certificates
-# fullchain.pem, privkey.pem
+# Quick setup
+./setup-https.sh
+
+# Or manually
+cp /path/to/fullchain.pem ./certs/
+cp /path/to/privkey.pem ./certs/
+chmod 644 ./certs/fullchain.pem
+chmod 600 ./certs/privkey.pem
 ```
 
-5. Update `nginx/conf.d/default.conf` với server name của bạn
+4. Update `.env` với OIDC config và domain của bạn
+
+5. Deploy với HTTPS:
+```bash
+./deploy.sh
+# Or manually: docker-compose up -d --build
+```
 
 2. Nếu dùng model khác, cập nhật `docker-compose.yml`:
 
@@ -423,26 +434,53 @@ docker exec -it rag-backend python -c "from sentence_transformers import Sentenc
 
 ## Production checklist
 
-- [ ] Đổi `API_KEY` thành giá trị ngẫu nhiên mạnh
-- [ ] Setup HTTPS reverse proxy (nginx/traefik)
-- [ ] Enable rate limiting
+- [ ] SSL certificates installed (not self-signed)
+- [ ] DNS/hosts configured cho domain
+- [ ] HTTPS working with security headers
+- [ ] HTTP → HTTPS redirect enabled
+- [ ] Đổi `API_KEY` và `OAUTH2_PROXY_COOKIE_SECRET` thành giá trị ngẫu nhiên mạnh
+- [ ] Keycloak SSO configured và tested
+- [ ] AD groups mapped correctly
+- [ ] Enable rate limiting (đã có sẵn trong nginx.conf)
 - [ ] Setup monitoring (Prometheus + Grafana)
-- [ ] Setup backup cho Qdrant data
+- [ ] Setup backup cho Qdrant data và certificates
 - [ ] Configure log rotation
-- [ ] Setup alerting
+- [ ] Setup alerting cho certificate expiry
 - [ ] Document disaster recovery procedure
 - [ ] Regular security updates
+- [ ] Firewall configured (only 443/tcp exposed)
 
 ## Nâng cấp tương lai
 
-- [ ] Redis cache cho frequently asked questions
-- [ ] OAuth/SSO integration
+- [x] ~~Redis cache cho frequently asked questions~~ ✅ v2
+- [x] ~~OAuth/SSO integration~~ ✅ v3 (Keycloak OIDC)
+- [x] ~~HTTPS with security headers~~ ✅ v3
+- [x] ~~Rate limiting~~ ✅ v3
 - [ ] Multi-user support với user quotas
 - [ ] Advanced RAG: hybrid search (dense + sparse)
 - [ ] Re-ranking model
 - [ ] Query expansion/rewriting
 - [ ] Feedback loop để improve results
 - [ ] A/B testing framework
+
+## Tài liệu
+
+### Setup Guides
+- **[HTTPS_SETUP.md](HTTPS_SETUP.md)** - Hướng dẫn chi tiết cấu hình HTTPS với certificate
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Cheat sheet các lệnh thường dùng
+- **[docs/V3_SSO_GUIDE.md](docs/V3_SSO_GUIDE.md)** - Hướng dẫn SSO với Keycloak
+- **[docs/KEYCLOAK_SETUP.md](docs/KEYCLOAK_SETUP.md)** - Chi tiết setup Keycloak server
+- **[docs/DEPLOYMENT_RUNBOOK.md](docs/DEPLOYMENT_RUNBOOK.md)** - Production deployment checklist
+- **[docs/V2_UPGRADE_GUIDE.md](docs/V2_UPGRADE_GUIDE.md)** - Nâng cấp từ v1 lên v2
+- **[docs/OCR_GUIDE.md](docs/OCR_GUIDE.md)** - Hướng dẫn xử lý PDF scan với OCR
+
+### Quick Scripts
+- `./setup-https.sh` - Wizard setup SSL certificates
+- `./deploy.sh` - One-command deployment với health checks
+
+### Support
+- Issues: GitHub Issues
+- Enterprise support: contact admin
 
 ## License
 
